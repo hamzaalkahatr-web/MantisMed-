@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MantisMed | Die Zukunft der medizinischen Sicherheit</title>
+    <title>MantisMed Vision | Die Zukunft der medizinischen Sicherheit</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -102,6 +102,28 @@
         button:hover {
             background-color: #00cc52;
         }
+        button:disabled {
+            background-color: #30363d;
+            color: #8b949e;
+            cursor: not-allowed;
+        }
+        .message-status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        .message-success {
+            background-color: rgba(0, 255, 102, 0.1);
+            color: #00ff66;
+            border: 1px solid #00ff66;
+        }
+        .message-error {
+            background-color: rgba(255, 51, 51, 0.1);
+            color: #ff3333;
+            border: 1px solid #ff3333;
+        }
         footer {
             text-align: center;
             color: #8b949e;
@@ -115,7 +137,7 @@
     <div class="container">
         
         <header>
-            <h1>MantisMed-Vision</h1>
+            <h1>MantisMed Vision</h1>
             <p>Smart Medical Glasses</p>
         </header>
 
@@ -146,15 +168,19 @@
         <div class="section cta-box">
             <h2>MantisMed-Vision Vorbestellung</h2>
             <p>Sichern Sie sich die Zukunft der medizinischen Sicherheit.</p>
-            <form id="orderForm">
-                <input type="email" id="email" placeholder="Ihre E-Mail-Adresse" required>
-                <select id="status">
+            
+            <div id="form-success" class="message-status message-success">Vielen Dank! Ihre Nachricht wurde erfolgreich gesendet.</div>
+            <div id="form-error" class="message-status message-error">Hoppla! Es gab ein Problem beim Absenden.</div>
+
+            <form id="my-form" action="https://formspree.io/f/mwvzbpdj" method="POST">
+                <input type="email" id="email" name="email" placeholder="Ihre E-Mail-Adresse" required>
+                <select id="status" name="status">
                     <option value="arzt">Zahnarzt / Ärztin</option>
                     <option value="klinik">Klinik / Labor</option>
                     <option value="sonstige">Sonstige</option>
                 </select>
-                <button type="submit">Jetzt Interesse bekunden</button>
-            </</form>
+                <button type="submit" id="submit-btn">Jetzt Interesse bekunden</button>
+            </form>
         </div>
 
         <footer>
@@ -164,14 +190,54 @@
     </div>
 
     <script>
-        document.getElementById('orderForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            alert('Vielen Dank für Ihr Interesse! Wir werden Sie kontaktieren.');
-        });
+        var form = document.getElementById("my-form");
+        var successMessage = document.getElementById("form-success");
+        var errorMessage = document.getElementById("form-error");
+        var submitButton = document.getElementById("submit-btn");
+
+        async function handleSubmit(event) {
+          event.preventDefault();
+          submitButton.disabled = true;
+          submitButton.innerText = "Wird gesendet...";
+          
+          var data = new FormData(event.target);
+          fetch(event.target.action, {
+            method: form.method,
+            body: data,
+            headers: {
+                'Accept': 'application/json'
+            }
+          }).then(response => {
+            if (response.ok) {
+              successMessage.style.display = "block";
+              errorMessage.style.display = "none";
+              form.style.display = "none";
+              form.reset();
+            } else {
+              response.json().then(data => {
+                if (Object.hasOwn(data, 'errors')) {
+                  errorMessage.innerText = data["errors"].map(error => error["message"]).join(", ");
+                } else {
+                  errorMessage.innerText = "Hoppla! Es gab ein Problem beim Absenden.";
+                }
+                errorMessage.style.display = "block";
+                submitButton.disabled = false;
+                submitButton.innerText = "Jetzt Interesse bekunden";
+              })
+            }
+          }).catch(error => {
+            errorMessage.innerText = "Hoppla! Es gab ein Problem bei der Verbindung.";
+            errorMessage.style.display = "block";
+            submitButton.disabled = false;
+            submitButton.innerText = "Jetzt Interesse bekunden";
+          });
+        }
+        form.addEventListener("submit", handleSubmit)
     </script>
 
 </body>
 </html>
+
 
 
 
